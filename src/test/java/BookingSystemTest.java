@@ -44,14 +44,6 @@ public class BookingSystemTest {
     public void setUp() {
         BookingSystem.getInstance().getBookings().clear();
         MockitoAnnotations.openMocks(this);
-
-        // Mock BookingSystem to return a list of bookings
-//        List<Booking> bookings = new ArrayList<>();
-//        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
-//        Table table = new Table(1, 4, "Window");
-//        Booking booking = new Booking("B1", table, customer, LocalDateTime.now(), 4, "");
-//        bookings.add(booking);
-//        when(bookingSystem.getBookings()).thenReturn(bookings);
     }
 
     @Test
@@ -179,29 +171,6 @@ public class BookingSystemTest {
         // Assert
         assertFalse(result);
     }
-
-    // UC10: View Customer History
-//    @Test
-//    public void testViewCustomerHistory_HappyPath() {
-//        // Arrange
-//        // Create a mock booking system that returns a list with bookings for customer 1
-//        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
-//        Table table = new Table(1, 4, "Window");
-//        Booking booking = new Booking("B1", table, customer, LocalDateTime.now(), 4, "");
-//        List<Booking> bookings = new ArrayList<>();
-//        bookings.add(booking);
-//
-//        // Mock the behavior of the booking system to return the list of bookings
-//        when(bookingSystem.getBookings()).thenReturn(bookings);
-//
-//        // Act
-//        Customer result = bookingController.viewCustomerHistory(1);
-//
-//        // Assert
-//        assertNotNull(result);  // Ensure the customer is not null
-//        assertEquals("Malinda Gamage", result.getName());  // Check if the name matches
-//        assertEquals(1, result.getBookingHistory().size());  // Check if there is one booking in history
-//    }
 
     @Test
     public void testViewCustomerHistory_CustomerNotFound() {

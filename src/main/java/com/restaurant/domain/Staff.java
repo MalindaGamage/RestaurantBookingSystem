@@ -2,16 +2,11 @@ package com.restaurant.domain;
 
 import com.restaurant.controller.BookingController;
 import com.restaurant.controller.ReportController;
-import com.restaurant.domain.Table;
-import com.restaurant.domain.Booking;
-import com.restaurant.domain.Customer;
-import com.restaurant.domain.BookingDetails;
-import com.restaurant.domain.WalkinRecord;
 
 public class Staff extends User {
     private int staffId;
     private String name;
-    private String contactInfo;
+    private final String contactInfo;
     private final BookingController bookingController;
     private final ReportController reportController;
 

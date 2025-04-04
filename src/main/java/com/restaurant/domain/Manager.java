@@ -3,7 +3,6 @@ package com.restaurant.domain;
 import com.restaurant.controller.BookingController;
 import com.restaurant.controller.ReportController;
 import com.restaurant.controller.SystemSettingsManager;
-import com.restaurant.domain.Report;
 
 public class Manager extends Staff {
     private int managerId;
@@ -24,7 +23,7 @@ public class Manager extends Staff {
 
     public Staff createStaffAccount(String staffInfo) {
         // Simulate staff account creation
-        return new Staff(2, "staff2", "password", "Staff", 2, "Jane Doe", "jane@example.com",
+        return new Staff(2, "staff2", "password", "Staff", 2, "Mahela Jayawardhane", "mahela@example.com",
                 getBookingController(), getReportController());
     }
 

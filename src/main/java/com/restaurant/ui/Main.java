@@ -5,6 +5,8 @@ import com.restaurant.domain.*;
 import com.restaurant.strategy.*;
 import com.restaurant.util.Util;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
@@ -288,8 +290,62 @@ public class Main {
 
                 case 11: // UC11: Manage System Settings
                     try {
-                        manager.manageSystemSettings();
-                        System.out.println("System settings managed by manager.");
+                        manager.manageSystemSettings(); // Step 1: Access settings
+                        System.out.println("Manage System Settings (Enter 'exit' to cancel):");
+
+                        Map<String, Object> settings = new HashMap<>();
+                        boolean settingsValid = false;
+
+                        while (!settingsValid) {
+                            // Collect operating hours
+                            System.out.print("Enter operating hours (HH:MM-HH:MM, e.g., 09:00-22:00): ");
+                            String hoursInput = scanner.nextLine();
+                            if (hoursInput.equalsIgnoreCase("exit")) {
+                                System.out.println("Settings update canceled.");
+                                break;
+                            }
+                            try {
+                                if (!hoursInput.matches("\\d{2}:\\d{2}-\\d{2}:\\d{2}")) {
+                                    throw new IllegalArgumentException("Invalid format. Use HH:MM-HH:MM (e.g., 09:00-22:00).");
+                                }
+                                settings.put("operatingHours", hoursInput);
+                            } catch (IllegalArgumentException e) {
+                                System.out.println("Error: " + e.getMessage());
+                                continue; // Retry input
+                            }
+
+                            // Collect table count
+                            System.out.print("Enter number of tables (positive integer): ");
+                            String tableCountInput = scanner.nextLine();
+                            if (tableCountInput.equalsIgnoreCase("exit")) {
+                                System.out.println("Settings update canceled.");
+                                break;
+                            }
+                            try {
+                                int tableCount = Integer.parseInt(tableCountInput);
+                                if (tableCount < 0) {
+                                    throw new IllegalArgumentException("Number of tables must be non-negative.");
+                                }
+                                settings.put("tableCount", tableCount);
+                            } catch (NumberFormatException e) {
+                                System.out.println("Error: Please enter a valid integer.");
+                                continue; // Retry input
+                            } catch (IllegalArgumentException e) {
+                                System.out.println("Error: " + e.getMessage());
+                                continue; // Retry input
+                            }
+
+                            // Attempt to update settings
+                            settingsValid = system.getBookingController().updateSystemSettings(settings);
+                            if (!settingsValid) {
+                                System.out.println("Invalid settings detected. Please correct and retry.");
+                                settings.clear(); // Reset for retry
+                            }
+                        }
+
+                        if (settingsValid) {
+                            System.out.println("System settings updated successfully.");
+                        }
                     } catch (Exception e) {
                         System.out.println("Unexpected error: " + e.getMessage());
                     }

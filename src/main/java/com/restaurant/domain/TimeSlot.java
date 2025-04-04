@@ -8,8 +8,4 @@ public class TimeSlot {
     public TimeSlot(LocalDateTime startTime) {
         this.startTime = startTime;
     }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
 }

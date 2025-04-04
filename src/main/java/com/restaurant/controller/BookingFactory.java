@@ -1,7 +1,6 @@
 package com.restaurant.controller;
 
 import com.restaurant.domain.*;
-import java.time.LocalDateTime;
 
 public class BookingFactory {
     public Booking createBooking(String tableId, Customer customerInfo, BookingDetails bookingDetails) {
