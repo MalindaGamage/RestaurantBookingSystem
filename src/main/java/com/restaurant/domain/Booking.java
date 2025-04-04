@@ -16,6 +16,7 @@ public class Booking {
     private String specialRequirements;
     private BookingState state;
     private List<BookingObserver> observers;
+    private String confirmationStatus;
 
     public Booking(String bookingRef, Table table, Customer customer, LocalDateTime dateTime, int guests, String specialRequirements) {
         this.bookingRef = bookingRef;
@@ -27,6 +28,7 @@ public class Booking {
         this.state = new ConfirmedState();
         this.observers = new ArrayList<>();
         table.reserve(new TimeSlot(dateTime));
+        this.confirmationStatus = "Not Sent";
     }
 
     public void addObserver(BookingObserver observer) {
@@ -104,6 +106,14 @@ public class Booking {
 
     public String getSpecialRequirements() {
         return specialRequirements;
+    }
+
+    public void setConfirmationStatus(String status) {
+        this.confirmationStatus = status;
+    }
+
+    public String getConfirmationStatus() {
+        return confirmationStatus;
     }
 
 }

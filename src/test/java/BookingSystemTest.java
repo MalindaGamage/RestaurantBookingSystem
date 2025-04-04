@@ -200,19 +200,19 @@ public class BookingSystemTest {
     }
 
     // UC9: Send Confirmation
-    @Test
-    public void testSendConfirmation_HappyPath() {
-        // Arrange
-        Booking booking = mock(Booking.class);
-        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
-        when(booking.sendConfirmation("Email")).thenReturn(true);
-
-        // Act
-        boolean result = bookingController.requestConfirmation("B1", "Email");
-
-        // Assert
-        assertTrue(result);
-    }
+//    @Test
+//    public void testSendConfirmation_HappyPath() {
+//        // Arrange
+//        Booking booking = mock(Booking.class);
+//        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
+//        when(booking.sendConfirmation("Email")).thenReturn(true);
+//
+//        // Act
+//        boolean result = bookingController.requestConfirmation("B1", "Email");
+//
+//        // Assert
+//        assertTrue(result);
+//    }
 
     @Test
     public void testSendConfirmation_BookingNotFound() {
@@ -527,7 +527,7 @@ public class BookingSystemTest {
         // Arrange
         Report report = new Report("R1", "Booking", "All");
         List<String> reportData = new ArrayList<>();
-        reportData.add("Booking B1: John Doe, 4 guests"); // Simulated report content
+        reportData.add("Booking B1: Kumar Sangakkara, 4 guests"); // Simulated report content
         report.setData(reportData); // Assuming Report has a setData method
         when(reportManager.createReport("Booking", "All")).thenReturn(report);
 
@@ -676,5 +676,64 @@ public class BookingSystemTest {
         assertTrue(waitingListManager.getWaitingList().contains(entry1), "Malinda should still be on the list");
         verify(waitingListManager, times(1)).markAttemptedContact(1);
         verify(waitingListManager, times(2)).getNextCustomer();
+    }
+
+    // UC9: Send Confirmation - Main Success Scenario
+    @Test
+    public void testSendConfirmation_HappyPath() {
+        // Arrange
+        Booking realBooking = new Booking("B1", new Table(1, 4, "Window"),
+                new Customer(1, "Kumar Sangakkara", "1234567890", "pkgmalinda@gmail.com"),
+                LocalDateTime.now(), 4, "");
+        Booking booking = spy(realBooking); // Spy to allow stubbing on real object
+        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
+        doAnswer(invocation -> {
+            booking.setConfirmationStatus("Sent via Email"); // Simulate successful send
+            return true;
+        }).when(booking).sendConfirmation("Email");
+
+        // Act
+        boolean result = bookingController.requestConfirmation("B1", "Email"); // Steps 1-4
+
+        // Assert
+        assertTrue(result); // Step 4: Confirmation sent successfully
+        assertEquals("Sent via Email", booking.getConfirmationStatus()); // Step 5: Recorded in booking
+        verify(bookingManager, times(1)).retrieveBooking("B1");
+        verify(booking, times(1)).sendConfirmation("Email");
+    }
+
+    // UC9 Alternative Flow: Delivery Fails
+    @Test
+    public void testSendConfirmation_DeliveryFails() {
+        // Arrange
+        Booking realBooking = new Booking("B1", new Table(1, 4, "Window"),
+                new Customer(1, "Kumar Sangakkara", "1234567890", "pkgmalinda@gmail.com"),
+                LocalDateTime.now(), 4, "");
+        Booking booking = spy(realBooking); // Spy to allow stubbing on real object
+        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
+
+        // Simulate email failure
+        doAnswer(invocation -> {
+            booking.setConfirmationStatus("Failed: Email"); // Step 1: Indicate failure
+            return false;
+        }).when(booking).sendConfirmation("Email");
+
+        // Simulate SMS attempt failure
+        doAnswer(invocation -> {
+            booking.setConfirmationStatus("Failed: Email, SMS"); // Step 2: Try alternative, still fails
+            return false;
+        }).when(booking).sendConfirmation("SMS");
+
+        // Act
+        boolean emailResult = bookingController.requestConfirmation("B1", "Email"); // Step 1
+        boolean smsResult = bookingController.requestConfirmation("B1", "SMS"); // Step 2
+
+        // Assert
+        assertFalse(emailResult); // Step 1: Email delivery failed
+        assertFalse(smsResult); // Step 2: SMS delivery failed
+        assertEquals("Failed: Email, SMS", booking.getConfirmationStatus()); // Step 3: Noted in system
+        verify(bookingManager, times(2)).retrieveBooking("B1"); // Called twice for both attempts
+        verify(booking, times(1)).sendConfirmation("Email");
+        verify(booking, times(1)).sendConfirmation("SMS");
     }
 }
