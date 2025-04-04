@@ -3,16 +3,19 @@ package com.restaurant.controller;
 import com.restaurant.domain.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public class BookingController {
     private TableManager tableManager;
     protected BookingManager bookingManager;
     private WaitingListManager waitingListManager;
+    private SystemSettingsManager settingsManager;
 
     public BookingController() {
         this.tableManager = new TableManager();
         this.bookingManager = new BookingManager();
         this.waitingListManager = new WaitingListManager();
+        this.settingsManager = new SystemSettingsManager();
     }
 
     public Table[] checkAvailability(String date, String time, int guests) {
@@ -118,5 +121,9 @@ public class BookingController {
             return entry.convertToBooking(tableId);
         }
         return null;
+    }
+
+    public boolean updateSystemSettings(Map<String, Object> settings) {
+        return settingsManager.updateSettings(settings); // UC11
     }
 }

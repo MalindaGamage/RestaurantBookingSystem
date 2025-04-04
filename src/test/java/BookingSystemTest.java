@@ -10,10 +10,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -729,7 +726,7 @@ public class BookingSystemTest {
     public void testViewCustomerHistory_NoRecordFound() {
         // Arrange
         BookingSystem.getInstance().getBookings().clear(); // Reset singleton state
-        Customer customer = new Customer(1, "John Doe", "1234567890", "john@example.com");
+        Customer customer = new Customer(1, "Malinda Gamage", "1234567890", "pkgmalinda@gmail.com");
         Booking booking = new Booking("B1", new Table(1, 4, "Window"), customer, LocalDateTime.now(), 4, "");
         BookingSystem.getInstance().getBookings().add(booking); // Add one booking to singleton
 
@@ -738,5 +735,47 @@ public class BookingSystemTest {
 
         // Assert
         assertNull(result, "No customer should be found for ID 999");
+    }
+
+    // UC11: Manage System Settings - Main Success Scenario
+    @Test
+    public void testUpdateSystemSettings_HappyPath() {
+        // Arrange
+        Map<String, Object> newSettings = new HashMap<>();
+        newSettings.put("operatingHours", "09:00-22:00");
+        newSettings.put("tableCount", 10);
+        when(settingsManager.updateSettings(newSettings)).thenReturn(true);
+
+        // Act
+        boolean result = bookingController.updateSystemSettings(newSettings); // Steps 3-5
+
+        // Assert
+        assertTrue(result); // Step 6: Successful update confirmed
+        verify(settingsManager, times(1)).updateSettings(newSettings);
+    }
+
+    // UC11 Alternative Flow: Invalid Settings Detected
+    @Test
+    public void testUpdateSystemSettings_InvalidSettings() {
+        // Arrange
+        Map<String, Object> invalidSettings = new HashMap<>();
+        invalidSettings.put("operatingHours", "25:00-22:00"); // Invalid hours
+        invalidSettings.put("tableCount", -1); // Invalid countmvn
+        when(settingsManager.updateSettings(invalidSettings)).thenReturn(false);
+
+        Map<String, Object> correctedSettings = new HashMap<>();
+        correctedSettings.put("operatingHours", "09:00-22:00"); // Corrected
+        correctedSettings.put("tableCount", 10); // Corrected
+        when(settingsManager.updateSettings(correctedSettings)).thenReturn(true);
+
+        // Act
+        boolean invalidResult = bookingController.updateSystemSettings(invalidSettings); // Step 1: Invalid attempt
+        boolean correctedResult = bookingController.updateSystemSettings(correctedSettings); // Step 3: Resubmit
+
+        // Assert
+        assertFalse(invalidResult); // Step 1: Error detected
+        assertTrue(correctedResult); // Step 3: Successful after correction
+        verify(settingsManager, times(1)).updateSettings(invalidSettings);
+        verify(settingsManager, times(1)).updateSettings(correctedSettings);
     }
 }
