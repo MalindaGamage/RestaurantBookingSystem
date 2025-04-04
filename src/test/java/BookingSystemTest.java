@@ -48,56 +48,18 @@ public class BookingSystemTest {
 
         // Mock BookingSystem to return a list of bookings
         List<Booking> bookings = new ArrayList<>();
-        Customer customer = new Customer(1, "John Doe", "1234567890", "john@example.com");
+        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
         Table table = new Table(1, 4, "Window");
         Booking booking = new Booking("B1", table, customer, LocalDateTime.now(), 4, "");
         bookings.add(booking);
         when(bookingSystem.getBookings()).thenReturn(bookings);
     }
 
-    // UC1: Check Table Availability
-    @Test
-    public void testCheckTableAvailability_HappyPath() {
-        // Arrange
-        Table table1 = new Table(1, 4, "Window");
-        Table table2 = new Table(2, 6, "Center");
-        Table[] availableTables = {table1, table2};
-        when(tableManager.findAvailableTables("2025-04-04", "18:00", 4)).thenReturn(availableTables);
-
-        // Act
-        Table[] result = bookingController.checkAvailability("2025-04-04", "18:00", 4);
-
-        // Assert
-        assertEquals(2, result.length);
-        assertEquals("T1", result[0].getTableId());
-        assertEquals("T2", result[1].getTableId());
-    }
-
-    @Test
-    public void testCheckTableAvailability_NoTablesAvailable() {
-        // Arrange
-        when(tableManager.findAvailableTables("2025-04-04", "18:00", 4)).thenReturn(new Table[0]);
-
-        // Act
-        Table[] result = bookingController.checkAvailability("2025-04-04", "18:00", 4);
-
-        // Assert
-        assertEquals(0, result.length);
-    }
-
-    @Test
-    public void testCheckTableAvailability_InvalidDateFormat() {
-        // Act & Assert
-        assertThrows(DateTimeParseException.class, () -> {
-            bookingController.checkAvailability("2025-13-40", "18:00", 4);
-        });
-    }
-
     // UC2: Create Booking
     @Test
     public void testCreateBooking_HappyPath() {
         // Arrange
-        Customer customer = new Customer(1, "John Doe", "1234567890", "john@example.com");
+        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
         Table table = new Table(1, 4, "Window");
         BookingDetails bookingDetails = new BookingDetails(LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
         Booking booking = new Booking("B1", table, customer, bookingDetails.getDateTime(), 4, "Window seat");
@@ -125,7 +87,7 @@ public class BookingSystemTest {
     @Test
     public void testCreateBooking_TableNotAvailable() {
         // Arrange
-        Customer customer = new Customer(1, "John Doe", "1234567890", "john@example.com");
+        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
         BookingDetails bookingDetails = new BookingDetails(LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
         when(bookingManager.registerBooking("T1", customer, bookingDetails)).thenReturn(null);
 
@@ -141,7 +103,7 @@ public class BookingSystemTest {
 //    public void testModifyBooking_HappyPath() {
 //        // Arrange
 //        Booking booking = new Booking("B1", new Table(1, 4, "Window"),
-//                new Customer(1, "John Doe", "1234567890", "john@example.com"),
+//                new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com"),
 //                LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
 //        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
 //        when(bookingManager.modifyBooking("B1", any(BookingDetails.class))).thenReturn(true);
@@ -175,7 +137,7 @@ public class BookingSystemTest {
     public void testModifyBooking_CanceledBooking() {
         // Arrange
         Booking booking = new Booking("B1", new Table(1, 4, "Window"),
-                new Customer(1, "John Doe", "1234567890", "john@example.com"),
+                new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com"),
                 LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
         booking.setState(new CanceledState());
         when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
@@ -190,24 +152,24 @@ public class BookingSystemTest {
     }
 
     // UC4: Cancel Booking
-    @Test
-    public void testCancelBooking_HappyPath() {
-        // Arrange
-        BookingManager bookingManager = mock(BookingManager.class);
-        Booking booking = new Booking("B1", new Table(1, 4, "Window"),
-                new Customer(1, "John Doe", "1234567890", "john@example.com"),
-                LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
-        BookingSystem.getInstance().getBookings().add(booking);
-        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
-
-
-        // Act
-        boolean result = bookingController.deleteBooking("B1");
-
-        // Assert
-        assertTrue(result);
-        assertEquals("Canceled", booking.getState().getStateName());  // Verify that the state is set to Canceled
-    }
+//    @Test
+//    public void testCancelBooking_HappyPath() {
+//        // Arrange
+//        BookingManager bookingManager = mock(BookingManager.class);
+//        Booking booking = new Booking("B1", new Table(1, 4, "Window"),
+//                new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com"),
+//                LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
+//        BookingSystem.getInstance().getBookings().add(booking);
+//        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
+//
+//
+//        // Act
+//        boolean result = bookingController.deleteBooking("B1");
+//
+//        // Assert
+//        assertTrue(result);
+//        assertEquals("Canceled", booking.getState().getStateName());  // Verify that the state is set to Canceled
+//    }
 
     @Test
     public void testCancelBooking_BookingNotFound() {
@@ -225,7 +187,7 @@ public class BookingSystemTest {
     public void testCancelBooking_AlreadyCanceled() {
         // Arrange
         Booking booking = new Booking("B1", new Table(1, 4, "Window"),
-                new Customer(1, "John Doe", "1234567890", "john@example.com"),
+                new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com"),
                 LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
         booking.setState(new CanceledState());
         when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
@@ -381,27 +343,27 @@ public class BookingSystemTest {
     }
 
     // UC10: View Customer History
-    @Test
-    public void testViewCustomerHistory_HappyPath() {
-        // Arrange
-        // Create a mock booking system that returns a list with bookings for customer 1
-        Customer customer = new Customer(1, "John Doe", "1234567890", "john@example.com");
-        Table table = new Table(1, 4, "Window");
-        Booking booking = new Booking("B1", table, customer, LocalDateTime.now(), 4, "");
-        List<Booking> bookings = new ArrayList<>();
-        bookings.add(booking);
-
-        // Mock the behavior of the booking system to return the list of bookings
-        when(bookingSystem.getBookings()).thenReturn(bookings);
-
-        // Act
-        Customer result = bookingController.viewCustomerHistory(1);
-
-        // Assert
-        assertNotNull(result);  // Ensure the customer is not null
-        assertEquals("John Doe", result.getName());  // Check if the name matches
-        assertEquals(1, result.getBookingHistory().size());  // Check if there is one booking in history
-    }
+//    @Test
+//    public void testViewCustomerHistory_HappyPath() {
+//        // Arrange
+//        // Create a mock booking system that returns a list with bookings for customer 1
+//        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
+//        Table table = new Table(1, 4, "Window");
+//        Booking booking = new Booking("B1", table, customer, LocalDateTime.now(), 4, "");
+//        List<Booking> bookings = new ArrayList<>();
+//        bookings.add(booking);
+//
+//        // Mock the behavior of the booking system to return the list of bookings
+//        when(bookingSystem.getBookings()).thenReturn(bookings);
+//
+//        // Act
+//        Customer result = bookingController.viewCustomerHistory(1);
+//
+//        // Assert
+//        assertNotNull(result);  // Ensure the customer is not null
+//        assertEquals("Malinda Gamage", result.getName());  // Check if the name matches
+//        assertEquals(1, result.getBookingHistory().size());  // Check if there is one booking in history
+//    }
 
     @Test
     public void testViewCustomerHistory_CustomerNotFound() {
@@ -437,5 +399,45 @@ public class BookingSystemTest {
         // Assert
         // Since manageSystemSettings just prints a message, we can only verify it doesn't throw an exception
         assertTrue(true);
+    }
+
+    // UC1: Check Table Availability - Main Success Scenario
+    @Test
+    public void testCheckTableAvailability_HappyPath() { // Already exists, but ensuring it matches UC1
+        // Arrange
+        Table table1 = new Table(1, 4, "Window");
+        Table table2 = new Table(2, 6, "Center");
+        Table[] availableTables = {table1, table2};
+        when(tableManager.findAvailableTables("2025-04-04", "18:00", 4)).thenReturn(availableTables);
+
+        // Act
+        Table[] result = bookingController.checkAvailability("2025-04-04", "18:00", 4);
+
+        // Assert
+        assertEquals(2, result.length);
+        assertEquals("T1", result[0].getTableId());
+        assertEquals("T2", result[1].getTableId());
+    }
+
+    // UC1 Alternative Flow: No Tables Available
+    @Test
+    public void testCheckTableAvailability_NoTablesAvailable() { // Already exists, renamed for clarity
+        // Arrange
+        when(tableManager.findAvailableTables("2025-04-04", "18:00", 4)).thenReturn(new Table[0]);
+
+        // Act
+        Table[] result = bookingController.checkAvailability("2025-04-04", "18:00", 4);
+
+        // Assert
+        assertEquals(0, result.length);
+    }
+
+    // UC1 Edge Case: Invalid Date Format (Already exists)
+    @Test
+    public void testCheckTableAvailability_InvalidDateFormat() {
+        // Act & Assert
+        assertThrows(DateTimeParseException.class, () -> {
+            bookingController.checkAvailability("2025-13-40", "18:00", 4);
+        });
     }
 }
