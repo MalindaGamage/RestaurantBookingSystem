@@ -90,6 +90,10 @@ public class Booking {
         this.guests = guests;
     }
 
+    public void setSpecialRequirements(String specialRequirements) {
+        this.specialRequirements = specialRequirements;
+    }
+
     public void setDateTime(LocalDateTime dateTime) {
         this.dateTime = dateTime;
     }

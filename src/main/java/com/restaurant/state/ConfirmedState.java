@@ -9,6 +9,7 @@ public class ConfirmedState implements BookingState {
     public boolean modify(Booking booking, BookingDetails updatedDetails) {
         booking.setDateTime(updatedDetails.getDateTime());
         booking.setGuests(updatedDetails.getGuests());
+        booking.setSpecialRequirements(updatedDetails.getSpecialRequirements());
         booking.setState(new ModifiedState());
         return true;
     }

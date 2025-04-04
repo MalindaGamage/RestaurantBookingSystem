@@ -442,7 +442,7 @@ public class BookingSystemTest {
     public void testCreateBooking_DuplicateBooking() {
         // Arrange
         BookingController bookingController = new BookingController();
-        Customer customer = new Customer(1, "John Doe", "1234567890", "john@example.com");
+        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
         BookingDetails bookingDetails = new BookingDetails(LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
         String tableId = "T1";
 
@@ -465,7 +465,7 @@ public class BookingSystemTest {
         // Arrange
         BookingController bookingController = new BookingController();
         Booking booking = new Booking("B1", new Table(1, 4, "Window"),
-                new Customer(1, "John Doe", "1234567890", "john@example.com"),
+                new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com"),
                 LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
         BookingSystem.getInstance().getBookings().add(booking);
 
@@ -475,5 +475,60 @@ public class BookingSystemTest {
         // Assert
         assertTrue(result);
         assertEquals("Canceled", booking.getState().getStateName());
+    }
+
+    // UC3: Modify Booking - Main Success Scenario
+    @Test
+    public void testModifyBooking_HappyPath() {
+        // Arrange
+        BookingController bookingController = new BookingController(); // Real instance
+        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
+        Table table = new Table(1, 4, "Window");
+        Booking booking = new Booking("B1", table, customer, LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
+        BookingSystem.getInstance().getBookings().add(booking); // Add existing booking
+        BookingDetails updatedDetails = new BookingDetails(LocalDateTime.of(2025, 4, 4, 19, 0), 5, "Corner seat");
+
+        // Act
+        boolean result = bookingController.updateBooking("B1", updatedDetails);
+
+        // Assert
+        assertTrue(result); // Step 5: Booking updated successfully
+        Booking updatedBooking = BookingSystem.getInstance().getBookings().get(0);
+        assertEquals(LocalDateTime.of(2025, 4, 4, 19, 0), updatedBooking.getDateTime()); // Step 3 & 5: Date/time modified
+        assertEquals(5, updatedBooking.getGuests()); // Step 3 & 5: Guests modified
+        assertEquals("Corner seat", updatedBooking.getSpecialRequirements()); // Step 3 & 5: Special requirements modified
+    }
+
+    // UC3 Alternative Flow: Requested Changes Cannot Be Accommodated
+    @Test
+    public void testModifyBooking_ChangesNotAccommodated() {
+        // Arrange
+        // Use mocking to simulate BookingManager rejecting the change
+        BookingManager mockedBookingManager = mock(BookingManager.class);
+        BookingController bookingController = new BookingController() {
+            // Override to use mocked BookingManager
+            {
+                this.bookingManager = mockedBookingManager;
+            }
+        };
+        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
+        Table table = new Table(1, 4, "Window");
+        Booking booking = new Booking("B1", table, customer, LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
+        BookingSystem.getInstance().getBookings().add(booking);
+        BookingDetails updatedDetails = new BookingDetails(LocalDateTime.of(2025, 4, 4, 19, 0), 5, "Corner seat");
+
+        // Simulate no table availability for the new time
+        when(mockedBookingManager.retrieveBooking("B1")).thenReturn(booking);
+        when(mockedBookingManager.modifyBooking("B1", updatedDetails)).thenReturn(false);
+
+        // Act
+        boolean result = bookingController.updateBooking("B1", updatedDetails);
+
+        // Assert
+        assertFalse(result); // Step 1: System indicates constraints
+        Booking unchangedBooking = BookingSystem.getInstance().getBookings().get(0);
+        assertEquals(LocalDateTime.of(2025, 4, 4, 18, 0), unchangedBooking.getDateTime()); // Step 4: Original booking maintained
+        assertEquals(4, unchangedBooking.getGuests()); // Step 4: Original booking maintained
+        assertEquals("Window seat", unchangedBooking.getSpecialRequirements()); // Step 4: Original booking maintained
     }
 }

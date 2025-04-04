@@ -9,6 +9,7 @@ public class ModifiedState implements BookingState {
     public boolean modify(Booking booking, BookingDetails updatedDetails) {
         booking.setDateTime(updatedDetails.getDateTime());
         booking.setGuests(updatedDetails.getGuests());
+        booking.setSpecialRequirements(updatedDetails.getSpecialRequirements());
         return true;
     }
 

@@ -6,7 +6,7 @@ import java.util.List;
 
 public class BookingController {
     private TableManager tableManager;
-    private BookingManager bookingManager;
+    protected BookingManager bookingManager;
     private WaitingListManager waitingListManager;
 
     public BookingController() {
