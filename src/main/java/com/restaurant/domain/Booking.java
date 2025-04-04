@@ -98,4 +98,8 @@ public class Booking {
         return state;
     }
 
+    public String getSpecialRequirements() {
+        return specialRequirements;
+    }
+
 }

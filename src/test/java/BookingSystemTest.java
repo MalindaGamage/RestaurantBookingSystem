@@ -55,35 +55,6 @@ public class BookingSystemTest {
         when(bookingSystem.getBookings()).thenReturn(bookings);
     }
 
-    // UC2: Create Booking
-    @Test
-    public void testCreateBooking_HappyPath() {
-        // Arrange
-        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
-        Table table = new Table(1, 4, "Window");
-        BookingDetails bookingDetails = new BookingDetails(LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
-        Booking booking = new Booking("B1", table, customer, bookingDetails.getDateTime(), 4, "Window seat");
-        when(bookingManager.registerBooking("T1", customer, bookingDetails)).thenReturn(booking);
-
-        // Mock BookingSystem.getInstance() to return the mocked bookingSystem
-        try (MockedStatic<BookingSystem> mockedStatic = mockStatic(BookingSystem.class)) {
-            mockedStatic.when(BookingSystem::getInstance).thenReturn(bookingSystem);
-            List<Booking> bookingsList = new ArrayList<>();
-            when(bookingSystem.getBookings()).thenReturn(bookingsList);
-
-            // Act
-            Booking result = bookingController.createBooking("T1", customer, bookingDetails);
-
-            // Assert
-            assertNotNull(result);
-            assertEquals("B1", result.getBookingRef());
-            assertEquals(4, result.getGuests());
-            verify(bookingSystem, times(1)).getBookings();
-            assertEquals(1, bookingsList.size());
-            assertEquals(booking, bookingsList.get(0));
-        }
-    }
-
     @Test
     public void testCreateBooking_TableNotAvailable() {
         // Arrange
@@ -439,5 +410,70 @@ public class BookingSystemTest {
         assertThrows(DateTimeParseException.class, () -> {
             bookingController.checkAvailability("2025-13-40", "18:00", 4);
         });
+    }
+
+    // UC2: Create Booking - Main Success Scenario
+    @Test
+    public void testCreateBooking_HappyPath() {
+        // Arrange
+        BookingController bookingController = new BookingController(); // Real instance
+        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
+        BookingDetails bookingDetails = new BookingDetails(LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
+        String tableId = "T1";
+
+        // Act
+        Booking result = bookingController.createBooking(tableId, customer, bookingDetails);
+
+        // Assert
+        assertNotNull(result); // Step 4: Booking recorded
+        assertEquals(tableId, result.getTable().getTableId()); // Step 1: Table selected
+        assertEquals(customer, result.getCustomer()); // Step 2: Customer details entered
+        assertEquals(4, result.getGuests()); // Step 3: Number of guests confirmed
+        assertEquals("Window seat", result.getSpecialRequirements()); // Step 3: Special requirements confirmed
+        assertNotNull(result.getBookingRef()); // Step 4: Unique reference assigned
+        // Step 5: Table status update isn’t directly testable here (handled by BookingManager)
+        // Step 6: Confirmation details generated (assumed in Booking creation)
+        assertEquals(1, BookingSystem.getInstance().getBookings().size()); // Booking added to system
+        assertEquals(result, BookingSystem.getInstance().getBookings().get(0));
+    }
+
+    // UC2 Alternative Flow: Duplicate Booking Detected
+    @Test
+    public void testCreateBooking_DuplicateBooking() {
+        // Arrange
+        BookingController bookingController = new BookingController();
+        Customer customer = new Customer(1, "John Doe", "1234567890", "john@example.com");
+        BookingDetails bookingDetails = new BookingDetails(LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
+        String tableId = "T1";
+
+        // Add existing booking
+        Booking existingBooking = new Booking("B1", new Table(1, 4, "Window"), customer,
+                LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
+        BookingSystem.getInstance().getBookings().add(existingBooking);
+
+        // Act
+        Booking result = bookingController.createBooking(tableId, customer, bookingDetails);
+
+        // Assert
+        assertNull(result); // Assuming duplicate detection returns null
+        assertEquals(1, BookingSystem.getInstance().getBookings().size()); // No new booking added
+    }
+
+    // Existing tests (e.g., UC1, UC4) remain unchanged...
+    @Test
+    public void testCancelBooking_HappyPath() {
+        // Arrange
+        BookingController bookingController = new BookingController();
+        Booking booking = new Booking("B1", new Table(1, 4, "Window"),
+                new Customer(1, "John Doe", "1234567890", "john@example.com"),
+                LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
+        BookingSystem.getInstance().getBookings().add(booking);
+
+        // Act
+        boolean result = bookingController.deleteBooking("B1");
+
+        // Assert
+        assertTrue(result);
+        assertEquals("Canceled", booking.getState().getStateName());
     }
 }

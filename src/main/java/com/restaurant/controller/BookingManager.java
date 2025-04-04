@@ -13,6 +13,12 @@ public class BookingManager {
     }
 
     public Booking registerBooking(String tableId, Customer customerInfo, BookingDetails bookingDetails) {
+        for (Booking existing : BookingSystem.getInstance().getBookings()) {
+            if (existing.getTable().getTableId().equals(tableId) &&
+                    existing.getDateTime().equals(bookingDetails.getDateTime())) {
+                return null; // Duplicate detected
+            }
+        }
         return bookingFactory.createBooking(tableId, customerInfo, bookingDetails);
     }
 
