@@ -5,11 +5,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -127,21 +129,6 @@ public class BookingSystemTest {
 
         // Assert
         assertFalse(result);
-    }
-
-    // UC6: Generate Reports
-    @Test
-    public void testGenerateReports_HappyPath() {
-        // Arrange
-        Report report = new Report("R1", "Booking", "All");
-        when(reportManager.createReport("Booking", "All")).thenReturn(report);
-
-        // Act
-        Report result = reportController.generateReport("Booking", "All");
-
-        // Assert
-        assertNotNull(result);
-        assertEquals("R1", result.getReportId());
     }
 
     @Test
@@ -531,5 +518,53 @@ public class BookingSystemTest {
         // Assert
         assertNull(result); // Step 1: System indicates no availability
         // Steps 2-4 (wait time estimate and waiting list) are staff actions not directly testable here
+    }
+
+    // UC6: Generate Reports - Main Success Scenario
+    @Test
+    public void testGenerateReports_HappyPath() {
+        // Arrange
+        Report report = new Report("R1", "Booking", "All");
+        List<String> reportData = new ArrayList<>();
+        reportData.add("Booking B1: John Doe, 4 guests"); // Simulated report content
+        report.setData(reportData); // Assuming Report has a setData method
+        when(reportManager.createReport("Booking", "All")).thenReturn(report);
+
+        // Act
+        Report result = reportController.generateReport("Booking", "All");
+
+        // Assert
+        assertNotNull(result); // Step 4: Report generated
+        assertEquals("R1", result.getReportId()); // Step 4: Unique report ID
+        assertEquals("Booking", result.getReportType()); // Step 3: Correct report type
+        assertEquals("All", result.getParameters()); // Step 3: Correct parameters
+        assertFalse(result.getData().isEmpty()); // Step 5: Report contains data
+        assertEquals(1, result.getData().size()); // Step 5: Data present
+    }
+
+    // UC6 Alternative Flow: Insufficient Data for Meaningful Report
+    @Test
+    public void testGenerateReports_InsufficientData() {
+        // Arrange
+        // Simulate no data by clearing BookingSystem bookings
+        BookingSystem.getInstance().getBookings().clear();
+        try (MockedStatic<BookingSystem> mockedStatic = mockStatic(BookingSystem.class)) {
+            mockedStatic.when(BookingSystem::getInstance).thenReturn(bookingSystem);
+            when(bookingSystem.getBookings()).thenReturn(new ArrayList<>()); // Empty bookings
+
+            Report report = new Report("R2", "Booking", "All");
+            report.setData(Collections.emptyList()); // Empty report data
+            when(reportManager.createReport("Booking", "All")).thenReturn(report);
+
+            // Act
+            Report result = reportController.generateReport("Booking", "All");
+
+            // Assert
+            assertNotNull(result); // Step 1: Report generated despite no data
+            assertEquals("R2", result.getReportId());
+            assertEquals("Booking", result.getReportType());
+            assertEquals("All", result.getParameters());
+            assertTrue(result.getData().isEmpty()); // Step 1: Indicates data limitations
+        }
     }
 }
