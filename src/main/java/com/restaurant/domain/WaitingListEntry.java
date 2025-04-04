@@ -49,6 +49,10 @@ public class WaitingListEntry {
         return status;
     }
 
+    public String getCustomerName() {
+        return customerName;
+    }
+
     public void setEstimatedWaitTime(int minutes) {
         this.estimatedWaitTime = minutes;
     }

@@ -99,4 +99,24 @@ public class BookingController {
     public boolean updateTableStatuses(List<String> tableIds, String status) {
         return tableManager.updateTableStatuses(tableIds, status, LocalDateTime.now());
     }
+
+    public boolean addToWaitingList(String customerName, int guests, String contactNumber, int estimatedWaitTime) {
+        return waitingListManager.addToWaitingList(customerName, guests, contactNumber, estimatedWaitTime);
+    }
+
+    public WaitingListEntry getNextWaitingCustomer() {
+        return waitingListManager.getNextCustomer();
+    }
+
+    public void markAttemptedContact(int entryId) {
+        waitingListManager.markAttemptedContact(entryId);
+    }
+
+    public Booking convertWaitingToBooking(int entryId, String tableId) {
+        WaitingListEntry entry = waitingListManager.removeFromWaitingList(entryId);
+        if (entry != null && entry.notifyCustomer()) {
+            return entry.convertToBooking(tableId);
+        }
+        return null;
+    }
 }

@@ -173,24 +173,24 @@ public class BookingSystemTest {
     }
 
     // UC8: Manage Waiting List
-    @Test
-    public void testManageWaitingList_HappyPath() {
-        // Arrange
-        Customer customer = new Customer(3, "Alice", "9876543210", "");
-        WaitingListEntry entry = new WaitingListEntry(1, "Alice", "9876543210", 3, LocalDateTime.now());
-        when(waitingListManager.getNextInLine()).thenReturn(entry);
-
-        // Act
-        bookingController.manageWaitingList();
-
-        // Assert
-        verify(waitingListManager, times(1)).manageWaitingList();
-    }
+//    @Test
+//    public void testManageWaitingList_HappyPath() {
+//        // Arrange
+//        Customer customer = new Customer(3, "Alice", "9876543210", "");
+//        WaitingListEntry entry = new WaitingListEntry(1, "Alice", "9876543210", 3, LocalDateTime.now());
+//        when(waitingListManager.getNextInLine()).thenReturn(entry);
+//
+//        // Act
+//        bookingController.manageWaitingList();
+//
+//        // Assert
+//        verify(waitingListManager, times(1)).manageWaitingList();
+//    }
 
     @Test
     public void testManageWaitingList_EmptyList() {
         // Arrange
-        when(waitingListManager.getNextInLine()).thenReturn(null);
+        when(waitingListManager.getNextCustomer()).thenReturn(null);
 
         // Act
         bookingController.manageWaitingList();
@@ -274,7 +274,7 @@ public class BookingSystemTest {
     @Test
     public void testManageSystemSettings_HappyPath() {
         // Arrange
-        Manager manager = new Manager(2, "manager1", "password", "Manager", 2, "Jane Doe", "jane@example.com", 1,
+        Manager manager = new Manager(2, "manager1", "password", "Manager", 2, "Malinda Gamage", "jane@example.com", 1,
                 bookingController, reportController);
 
         // Act
@@ -611,5 +611,70 @@ public class BookingSystemTest {
         // Assert
         assertFalse(result); // Step 2: Bulk update fails if any table update fails
         verify(tableManager, times(1)).updateTableStatuses(eq(tableIds), eq("Available"), any(LocalDateTime.class));
+    }
+
+    // UC8: Manage Waiting List - Main Success Scenario
+    @Test
+    public void testManageWaitingList_HappyPath() {
+        // Arrange
+        int entryId = 1;
+        String customerName = "Malinda Gamage";
+        int guests = 4;
+        String contactNumber = "9876543210";
+        int estimatedWaitTime = 15;
+        WaitingListEntry entry = new WaitingListEntry(entryId, customerName, contactNumber, guests, LocalDateTime.now());
+        entry.setEstimatedWaitTime(estimatedWaitTime);
+        when(waitingListManager.addToWaitingList(customerName, guests, contactNumber, estimatedWaitTime)).thenReturn(true);
+        when(waitingListManager.getNextCustomer()).thenReturn(entry);
+        when(waitingListManager.removeFromWaitingList(entryId)).thenReturn(entry);
+
+        // Act
+        boolean added = bookingController.addToWaitingList(customerName, guests, contactNumber, estimatedWaitTime); // Steps 2-4
+        WaitingListEntry nextCustomer = bookingController.getNextWaitingCustomer(); // Step 5
+        Booking result = bookingController.convertWaitingToBooking(entryId, "T1"); // Steps 6-7
+
+        // Assert
+        assertTrue(added); // Step 4: Added to waiting list
+        assertNotNull(nextCustomer); // Step 5: Displayed in priority order
+        assertEquals(customerName, nextCustomer.getCustomerName());
+        assertNotNull(result); // Step 7: Converted to booking
+        assertEquals("B1", result.getBookingRef()); // Matches entryId
+        verify(waitingListManager, times(1)).addToWaitingList(customerName, guests, contactNumber, estimatedWaitTime);
+        verify(waitingListManager, times(1)).getNextCustomer();
+        verify(waitingListManager, times(1)).removeFromWaitingList(entryId);
+    }
+
+    // UC8 Alternative Flow: Customer Cannot Be Reached
+    @Test
+    public void testManageWaitingList_CustomerCannotBeReached() {
+        // Arrange
+        WaitingListEntry entry1 = new WaitingListEntry(1, "Malinda Gamage", "9876543210", 4, LocalDateTime.now());
+        WaitingListEntry entry2 = new WaitingListEntry(2, "Kumar Sangakkara", "5551234567", 4, LocalDateTime.now().plusSeconds(1));
+
+        when(waitingListManager.addToWaitingList(eq("Malinda Gamage"), eq(4), eq("9876543210"), eq(15))).thenReturn(true);
+        when(waitingListManager.addToWaitingList(eq("Kumar Sangakkara"), eq(4), eq("5551234567"), eq(15))).thenReturn(true);
+        when(waitingListManager.getNextCustomer()).thenReturn(entry1, entry2);
+        when(waitingListManager.getWaitingList()).thenReturn(new ArrayList<>(Arrays.asList(entry1, entry2)));
+
+        doAnswer(invocation -> {
+            entry1.updateStatus("Attempted Contact");
+            return null;
+        }).when(waitingListManager).markAttemptedContact(1);
+
+        // Act
+        bookingController.addToWaitingList("Malinda Gamage", 4, "9876543210", 15);
+        bookingController.addToWaitingList("Kumar Sangakkara", 4, "5551234567", 15);
+        WaitingListEntry firstCustomer = bookingController.getNextWaitingCustomer();
+        bookingController.markAttemptedContact(1);
+        WaitingListEntry nextCustomer = bookingController.getNextWaitingCustomer();
+
+        // Assert
+        assertEquals("Malinda Gamage", firstCustomer.getCustomerName());
+        assertEquals("Attempted Contact", firstCustomer.getStatus(), "Status should be updated to 'Attempted Contact'");
+        assertEquals("Kumar Sangakkara", nextCustomer.getCustomerName());
+        assertEquals("Waiting", nextCustomer.getStatus());
+        assertTrue(waitingListManager.getWaitingList().contains(entry1), "Malinda should still be on the list");
+        verify(waitingListManager, times(1)).markAttemptedContact(1);
+        verify(waitingListManager, times(2)).getNextCustomer();
     }
 }
