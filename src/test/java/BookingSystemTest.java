@@ -49,12 +49,12 @@ public class BookingSystemTest {
         MockitoAnnotations.openMocks(this);
 
         // Mock BookingSystem to return a list of bookings
-        List<Booking> bookings = new ArrayList<>();
-        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
-        Table table = new Table(1, 4, "Window");
-        Booking booking = new Booking("B1", table, customer, LocalDateTime.now(), 4, "");
-        bookings.add(booking);
-        when(bookingSystem.getBookings()).thenReturn(bookings);
+//        List<Booking> bookings = new ArrayList<>();
+//        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
+//        Table table = new Table(1, 4, "Window");
+//        Booking booking = new Booking("B1", table, customer, LocalDateTime.now(), 4, "");
+//        bookings.add(booking);
+//        when(bookingSystem.getBookings()).thenReturn(bookings);
     }
 
     @Test
@@ -147,19 +147,6 @@ public class BookingSystemTest {
         assertTrue(result.getData().isEmpty());
     }
 
-    // UC7: Update Table Status
-//    @Test
-//    public void testUpdateTableStatus_HappyPath() {
-//        // Arrange
-//        when(tableManager.updateTableStatus(eq("T1"), eq("Needs Cleaning"), any(LocalDateTime.class))).thenReturn(true);
-//
-//        // Act
-//        boolean result = bookingController.updateTableStatus("T1", "Needs Cleaning");
-//
-//        // Assert
-//        assertTrue(result);
-//    }
-
     @Test
     public void testUpdateTableStatus_InvalidTableId() {
         // Arrange
@@ -172,21 +159,6 @@ public class BookingSystemTest {
         assertFalse(result);
     }
 
-    // UC8: Manage Waiting List
-//    @Test
-//    public void testManageWaitingList_HappyPath() {
-//        // Arrange
-//        Customer customer = new Customer(3, "Alice", "9876543210", "");
-//        WaitingListEntry entry = new WaitingListEntry(1, "Alice", "9876543210", 3, LocalDateTime.now());
-//        when(waitingListManager.getNextInLine()).thenReturn(entry);
-//
-//        // Act
-//        bookingController.manageWaitingList();
-//
-//        // Assert
-//        verify(waitingListManager, times(1)).manageWaitingList();
-//    }
-
     @Test
     public void testManageWaitingList_EmptyList() {
         // Arrange
@@ -198,21 +170,6 @@ public class BookingSystemTest {
         // Assert
         verify(waitingListManager, times(1)).manageWaitingList();
     }
-
-    // UC9: Send Confirmation
-//    @Test
-//    public void testSendConfirmation_HappyPath() {
-//        // Arrange
-//        Booking booking = mock(Booking.class);
-//        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
-//        when(booking.sendConfirmation("Email")).thenReturn(true);
-//
-//        // Act
-//        boolean result = bookingController.requestConfirmation("B1", "Email");
-//
-//        // Assert
-//        assertTrue(result);
-//    }
 
     @Test
     public void testSendConfirmation_BookingNotFound() {
@@ -735,5 +692,51 @@ public class BookingSystemTest {
         verify(bookingManager, times(2)).retrieveBooking("B1"); // Called twice for both attempts
         verify(booking, times(1)).sendConfirmation("Email");
         verify(booking, times(1)).sendConfirmation("SMS");
+    }
+
+    // UC10 Alternative Flow: Multiple Customers with Similar Details
+    @Test
+    public void testViewCustomerHistory_MultipleMatches() {
+        // Arrange
+        BookingSystem.getInstance().getBookings().clear(); // Reset singleton state
+        Customer customer1 = new Customer(1, "Kumar Sangakkara", "1234567890", "kumar1@example.com");
+        Customer customer2 = new Customer(2, "Kumar Sangakkara", "1234567890", "kumar2@example.com");
+        Booking booking1 = new Booking("B1", new Table(1, 4, "Window"), customer1, LocalDateTime.now().minusDays(1), 4, "");
+        Booking booking2 = new Booking("B2", new Table(2, 4, "Corner"), customer2, LocalDateTime.now().minusDays(2), 4, "");
+        List<Booking> bookings = Arrays.asList(booking1, booking2);
+        BookingSystem.getInstance().getBookings().addAll(bookings); // Populate singleton directly
+
+        // Act
+        Customer result1 = bookingController.viewCustomerHistory(1);
+        Customer result2 = bookingController.viewCustomerHistory(2);
+
+        // Assert
+        assertNotNull(result1, "Customer 1 should be found");
+        assertEquals(1, result1.getCustomerId());
+        assertEquals(1, result1.getHistory().size());
+        assertTrue(result1.getHistory().contains(booking1), "Customer 1 should have booking B1");
+
+        assertNotNull(result2, "Customer 2 should be found");
+        assertEquals(2, result2.getCustomerId());
+        assertEquals(1, result2.getHistory().size());
+        assertTrue(result2.getHistory().contains(booking2), "Customer 2 should have booking B2");
+
+        // No need to verify bookingSystem.getBookings() since we're using the singleton
+    }
+
+    // UC10 Alternative Flow: No Customer Record Found
+    @Test
+    public void testViewCustomerHistory_NoRecordFound() {
+        // Arrange
+        BookingSystem.getInstance().getBookings().clear(); // Reset singleton state
+        Customer customer = new Customer(1, "John Doe", "1234567890", "john@example.com");
+        Booking booking = new Booking("B1", new Table(1, 4, "Window"), customer, LocalDateTime.now(), 4, "");
+        BookingSystem.getInstance().getBookings().add(booking); // Add one booking to singleton
+
+        // Act
+        Customer result = bookingController.viewCustomerHistory(999);
+
+        // Assert
+        assertNull(result, "No customer should be found for ID 999");
     }
 }

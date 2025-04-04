@@ -57,4 +57,8 @@ public class Customer {
     public String getEmail() {
         return email;
     }
+
+    public List<Booking> getHistory() {
+        return new ArrayList<>(bookingHistory); // Return a copy
+    }
 }
