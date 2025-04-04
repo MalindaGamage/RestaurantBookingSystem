@@ -95,4 +95,8 @@ public class BookingController {
     public boolean updateTableStatus(String tableId, String status) {
         return tableManager.updateTableStatus(tableId, status, LocalDateTime.now()); // UC7
     }
+
+    public boolean updateTableStatuses(List<String> tableIds, String status) {
+        return tableManager.updateTableStatuses(tableIds, status, LocalDateTime.now());
+    }
 }

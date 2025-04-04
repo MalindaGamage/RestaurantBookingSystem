@@ -67,6 +67,23 @@ public class TableManager {
         return false;
     }
 
+    public boolean updateTableStatuses(List<String> tableIds, String status, LocalDateTime timeSlot) {
+        boolean allSuccessful = true;
+        for (String tableId : tableIds) {
+            boolean success = false;
+            for (Table table : BookingSystem.getInstance().getTables()) {
+                if (table.getTableId().equals(tableId)) {
+                    success = table.updateStatus(status);
+                    break;
+                }
+            }
+            if (!success) {
+                allSuccessful = false; // Even one failure means the operation isn’t fully successful
+            }
+        }
+        return allSuccessful;
+    }
+
     public String getTableLayout() {
         return "Table layout: " + BookingSystem.getInstance().getTables().size() + " tables.";
     }

@@ -11,6 +11,7 @@ import org.mockito.MockitoAnnotations;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -147,17 +148,17 @@ public class BookingSystemTest {
     }
 
     // UC7: Update Table Status
-    @Test
-    public void testUpdateTableStatus_HappyPath() {
-        // Arrange
-        when(tableManager.updateTableStatus(eq("T1"), eq("Needs Cleaning"), any(LocalDateTime.class))).thenReturn(true);
-
-        // Act
-        boolean result = bookingController.updateTableStatus("T1", "Needs Cleaning");
-
-        // Assert
-        assertTrue(result);
-    }
+//    @Test
+//    public void testUpdateTableStatus_HappyPath() {
+//        // Arrange
+//        when(tableManager.updateTableStatus(eq("T1"), eq("Needs Cleaning"), any(LocalDateTime.class))).thenReturn(true);
+//
+//        // Act
+//        boolean result = bookingController.updateTableStatus("T1", "Needs Cleaning");
+//
+//        // Assert
+//        assertTrue(result);
+//    }
 
     @Test
     public void testUpdateTableStatus_InvalidTableId() {
@@ -566,5 +567,49 @@ public class BookingSystemTest {
             assertEquals("All", result.getParameters());
             assertTrue(result.getData().isEmpty()); // Step 1: Indicates data limitations
         }
+    }
+
+    // UC7: Update Table Status - Main Success Scenario
+    @Test
+    public void testUpdateTableStatus_HappyPath() {
+        // Arrange
+        when(tableManager.updateTableStatus(eq("T1"), eq("Needs Cleaning"), any(LocalDateTime.class))).thenReturn(true);
+
+        // Act
+        boolean result = bookingController.updateTableStatus("T1", "Needs Cleaning");
+
+        // Assert
+        assertTrue(result); // Step 6: Table status updated successfully
+        verify(tableManager, times(1)).updateTableStatus(eq("T1"), eq("Needs Cleaning"), any(LocalDateTime.class));
+    }
+
+    // UC7 Alternative Flow: Staff Updates Multiple Tables
+    @Test
+    public void testUpdateMultipleTableStatuses() {
+        // Arrange
+        List<String> tableIds = Arrays.asList("T1", "T2");
+        when(tableManager.updateTableStatuses(eq(tableIds), eq("Available"), any(LocalDateTime.class))).thenReturn(true);
+
+        // Act
+        boolean result = bookingController.updateTableStatuses(tableIds, "Available");
+
+        // Assert
+        assertTrue(result); // Step 2: All tables updated successfully
+        verify(tableManager, times(1)).updateTableStatuses(eq(tableIds), eq("Available"), any(LocalDateTime.class));
+    }
+
+    // Additional Test: Partial Failure in Bulk Update
+    @Test
+    public void testUpdateMultipleTableStatuses_PartialFailure() {
+        // Arrange
+        List<String> tableIds = Arrays.asList("T1", "T3"); // T3 doesn’t exist or fails
+        when(tableManager.updateTableStatuses(eq(tableIds), eq("Available"), any(LocalDateTime.class))).thenReturn(false);
+
+        // Act
+        boolean result = bookingController.updateTableStatuses(tableIds, "Available");
+
+        // Assert
+        assertFalse(result); // Step 2: Bulk update fails if any table update fails
+        verify(tableManager, times(1)).updateTableStatuses(eq(tableIds), eq("Available"), any(LocalDateTime.class));
     }
 }
