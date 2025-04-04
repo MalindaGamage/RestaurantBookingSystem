@@ -32,6 +32,10 @@ public class WalkinRecord {
         return table;
     }
 
+    public String getCustomerName() {
+        return customerName;
+    }
+
     public String getRecordId() {
         return recordId;
     }

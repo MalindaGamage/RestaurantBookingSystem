@@ -174,7 +174,7 @@ public class Main {
                             System.out.println("No tables available. Consider adding to waiting list (UC8).");
                             break;
                         }
-                        WalkinRecord walkin = staff.recordWalkin(currentTables[0].getTableId(), customer);
+                        WalkinRecord walkin = staff.recordWalkin(currentTables[0].getTableId(), customer, guests);
                         System.out.println("Walk-in recorded: Record ID " + walkin.getRecordId() + ", Table " + walkin.getTable().getTableId());
                     } catch (IllegalArgumentException e) {
                         System.out.println("Error: " + e.getMessage());

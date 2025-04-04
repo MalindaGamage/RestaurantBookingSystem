@@ -42,7 +42,11 @@ public class BookingController {
         return bookingManager.cancelBooking(bookingRef); // UC4
     }
 
-    public WalkinRecord recordWalkin(String tableId, Customer customerInfo) {
+    public WalkinRecord recordWalkin(String tableId, Customer customerInfo, int guests) {
+        Table[] availableTables = getCurrentAvailability(guests); // Assume Customer has getGuests()
+        if (availableTables.length == 0) {
+            return null; // No tables available
+        }
         WalkinRecord walkin = bookingManager.createWalkinRecord(tableId, customerInfo); // UC5
         tableManager.updateTableStatus(tableId, "Occupied", LocalDateTime.now());
         return walkin;

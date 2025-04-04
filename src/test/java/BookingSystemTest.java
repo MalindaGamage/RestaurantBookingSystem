@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
@@ -69,27 +68,6 @@ public class BookingSystemTest {
         assertNull(result);
     }
 
-    // UC3: Modify Booking
-//    @Test
-//    public void testModifyBooking_HappyPath() {
-//        // Arrange
-//        Booking booking = new Booking("B1", new Table(1, 4, "Window"),
-//                new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com"),
-//                LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
-//        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
-//        when(bookingManager.modifyBooking("B1", any(BookingDetails.class))).thenReturn(true);
-//
-//        BookingDetails updatedDetails = new BookingDetails(LocalDateTime.of(2025, 4, 5, 19, 0), 5, "");
-//
-//        // Act
-//        boolean result = bookingController.updateBooking("B1", updatedDetails);
-//
-//        // Assert
-//        assertTrue(result);
-//        assertEquals(LocalDateTime.of(2025, 4, 5, 19, 0), booking.getDateTime());
-//        assertEquals(5, booking.getGuests());
-//    }
-
     @Test
     public void testModifyBooking_BookingNotFound() {
         // Arrange
@@ -122,26 +100,6 @@ public class BookingSystemTest {
         assertFalse(result);
     }
 
-    // UC4: Cancel Booking
-//    @Test
-//    public void testCancelBooking_HappyPath() {
-//        // Arrange
-//        BookingManager bookingManager = mock(BookingManager.class);
-//        Booking booking = new Booking("B1", new Table(1, 4, "Window"),
-//                new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com"),
-//                LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
-//        BookingSystem.getInstance().getBookings().add(booking);
-//        when(bookingManager.retrieveBooking("B1")).thenReturn(booking);
-//
-//
-//        // Act
-//        boolean result = bookingController.deleteBooking("B1");
-//
-//        // Assert
-//        assertTrue(result);
-//        assertEquals("Canceled", booking.getState().getStateName());  // Verify that the state is set to Canceled
-//    }
-
     @Test
     public void testCancelBooking_BookingNotFound() {
         // Arrange
@@ -169,39 +127,6 @@ public class BookingSystemTest {
 
         // Assert
         assertFalse(result);
-    }
-
-    // UC5: Record Walk-in
-    @Test
-    public void testRecordWalkin_HappyPath() {
-        // Arrange
-        Customer customer = new Customer(2, "Jane Doe", "", "");
-        Table table = new Table(1, 4, "Window");
-        Table[] availableTables = {table};
-        when(bookingController.getCurrentAvailability(2)).thenReturn(availableTables);
-        WalkinRecord walkin = new WalkinRecord("W1", table, "Jane Doe", 2, LocalDateTime.now());
-        when(bookingManager.createWalkinRecord("T1", customer)).thenReturn(walkin);
-
-        // Act
-        WalkinRecord result = bookingController.recordWalkin("T1", customer);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals("W1", result.getRecordId());
-        assertEquals("Occupied", table.getStatus());
-    }
-
-    @Test
-    public void testRecordWalkin_NoTablesAvailable() {
-        // Arrange
-        Customer customer = new Customer(2, "Jane Doe", "", "");
-        when(bookingController.getCurrentAvailability(2)).thenReturn(new Table[0]);
-
-        // Act
-        WalkinRecord result = bookingController.recordWalkin("T1", customer);
-
-        // Assert
-        assertNull(result);
     }
 
     // UC6: Generate Reports
@@ -459,24 +384,6 @@ public class BookingSystemTest {
         assertEquals(1, BookingSystem.getInstance().getBookings().size()); // No new booking added
     }
 
-    // Existing tests (e.g., UC1, UC4) remain unchanged...
-    @Test
-    public void testCancelBooking_HappyPath() {
-        // Arrange
-        BookingController bookingController = new BookingController();
-        Booking booking = new Booking("B1", new Table(1, 4, "Window"),
-                new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com"),
-                LocalDateTime.of(2025, 4, 4, 18, 0), 4, "");
-        BookingSystem.getInstance().getBookings().add(booking);
-
-        // Act
-        boolean result = bookingController.deleteBooking("B1");
-
-        // Assert
-        assertTrue(result);
-        assertEquals("Canceled", booking.getState().getStateName());
-    }
-
     // UC3: Modify Booking - Main Success Scenario
     @Test
     public void testModifyBooking_HappyPath() {
@@ -530,5 +437,99 @@ public class BookingSystemTest {
         assertEquals(LocalDateTime.of(2025, 4, 4, 18, 0), unchangedBooking.getDateTime()); // Step 4: Original booking maintained
         assertEquals(4, unchangedBooking.getGuests()); // Step 4: Original booking maintained
         assertEquals("Window seat", unchangedBooking.getSpecialRequirements()); // Step 4: Original booking maintained
+    }
+
+    // UC4: Cancel Booking - Main Success Scenario
+    @Test
+    public void testCancelBooking_HappyPath() {
+        // Arrange
+        BookingController bookingController = new BookingController(); // Real instance
+        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
+        Table table = new Table(1, 4, "Window");
+        Booking booking = new Booking("B1", table, customer, LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
+        BookingSystem.getInstance().getBookings().add(booking);
+
+        // Act
+        boolean result = bookingController.deleteBooking("B1"); // Steps 3-5: Staff cancels, system confirms
+
+        // Assert
+        assertTrue(result); // Step 6: Cancellation successful
+        Booking updatedBooking = BookingSystem.getInstance().getBookings().get(0);
+        assertEquals("Canceled", updatedBooking.getState().getStateName()); // Step 6: Booking state updated
+        // Note: Table status update to "Available" (Step 6) and history log (Step 7) aren’t directly testable here
+        // unless BookingManager.cancelBooking() explicitly updates table status
+    }
+
+    // UC4 Alternative Flow: Staff Decides Not to Cancel
+    @Test
+    public void testCancelBooking_StaffDecidesNotToCancel() {
+        // Arrange
+        // Use mocking to simulate staff not confirming cancellation
+        BookingManager mockedBookingManager = mock(BookingManager.class);
+        BookingController bookingController = new BookingController() {
+            // Override to use mocked BookingManager
+            {
+                this.bookingManager = mockedBookingManager;
+            }
+        };
+        Customer customer = new Customer(1, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
+        Table table = new Table(1, 4, "Window");
+        Booking booking = new Booking("B1", table, customer, LocalDateTime.of(2025, 4, 4, 18, 0), 4, "Window seat");
+        BookingSystem.getInstance().getBookings().add(booking);
+
+        // Simulate staff selecting "No" by having cancelBooking return false
+        when(mockedBookingManager.retrieveBooking("B1")).thenReturn(booking);
+        when(mockedBookingManager.cancelBooking("B1")).thenReturn(false);
+
+        // Act
+        boolean result = bookingController.deleteBooking("B1");
+
+        // Assert
+        assertFalse(result); // Step 1: Staff selects "No"
+        Booking unchangedBooking = BookingSystem.getInstance().getBookings().get(0);
+        assertNotEquals("Canceled", unchangedBooking.getState().getStateName()); // Step 2: Booking unchanged
+    }
+
+    // UC5: Record Walk-in - Main Success Scenario
+    @Test
+    public void testRecordWalkin_HappyPath() {
+        // Arrange
+        BookingController bookingController = new BookingController(); // Real instance
+        Customer customer = new Customer(2, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
+        Table table = new Table(1, 4, "Window");
+        Table[] availableTables = {table};
+
+        // Mock getCurrentAvailability to simulate available tables
+        BookingController spiedController = spy(bookingController);
+        doReturn(availableTables).when(spiedController).getCurrentAvailability(2);
+
+        // Act
+        WalkinRecord result = spiedController.recordWalkin("T1", customer, 2);
+
+        // Assert
+        assertNotNull(result); // Step 5: Walk-in recorded
+        assertEquals("T1", result.getTable().getTableId()); // Step 3: Table selected
+        assertEquals("Occupied", result.getTable().getStatus()); // Step 5: Table status updated
+        assertEquals("Malinda Gamage", result.getCustomerName()); // Step 4: Customer info recorded
+        // Step 6: Walk-in recorded in history (not directly testable unless stored in a list)
+    }
+
+    // UC5 Alternative Flow: No Tables Currently Available
+    @Test
+    public void testRecordWalkin_NoTablesAvailable() {
+        // Arrange
+        BookingController bookingController = new BookingController(); // Real instance
+        Customer customer = new Customer(2, "Malinda Gamage", "973727398V", "pkgmalinda@gmail.com");
+
+        // Mock getCurrentAvailability to simulate no available tables
+        BookingController spiedController = spy(bookingController);
+        doReturn(new Table[0]).when(spiedController).getCurrentAvailability(2);
+
+        // Act
+        WalkinRecord result = spiedController.recordWalkin("T1", customer, 2);
+
+        // Assert
+        assertNull(result); // Step 1: System indicates no availability
+        // Steps 2-4 (wait time estimate and waiting list) are staff actions not directly testable here
     }
 }

@@ -50,6 +50,10 @@ public class Customer {
         return phone;
     }
 
+    public String getGuests() {
+        return phone;
+    }
+
     public String getEmail() {
         return email;
     }

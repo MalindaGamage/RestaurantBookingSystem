@@ -42,8 +42,10 @@ public class BookingManager {
 
     public boolean cancelBooking(String bookingRef) {
         Booking booking = retrieveBooking(bookingRef);
-        if (booking != null) {
+        if (booking != null && !(booking.getState() instanceof CanceledState)) {
             booking.setState(new CanceledState());  // Explicitly set the state
+            TableManager tableManager = new TableManager();
+            tableManager.updateTableStatus(booking.getTable().getTableId(), "Available", LocalDateTime.now());
             return true;
         }
         return false;

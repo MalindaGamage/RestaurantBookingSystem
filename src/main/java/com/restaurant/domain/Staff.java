@@ -41,8 +41,8 @@ public class Staff extends User {
         return bookingController.deleteBooking(bookingRef); // UC4
     }
 
-    public WalkinRecord recordWalkin(String tableId, Customer customerInfo) {
-        return bookingController.recordWalkin(tableId, customerInfo); // UC5
+    public WalkinRecord recordWalkin(String tableId, Customer customerInfo, int guests) {
+        return bookingController.recordWalkin(tableId, customerInfo, guests); // UC5
     }
 
     public boolean updateTableStatus(String tableId, String status) {
